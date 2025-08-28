@@ -19,7 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class WorldGenMinableClusterOverride extends WorldGenerator {
-    private static final Logger LOGGER = LogManager.getLogger("ScaryGen");
+	private static boolean warnedOnce = false;
     
     private static Block oreBlock = null;
 
@@ -172,13 +172,16 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
     	
     public static boolean generateBlock(World world, int x, int y, int z, List<WeightedRandomBlock> blocks) {
         // ---------- CHECK IF GEO BLOCK EXISTS ----------
-        if (oreBlock == null) {
-            oreBlock = (Block) Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
-            if (oreBlock == null) {
-                LOGGER.warn("GeoStrata ore block not found, skipping generation.");
-                return false; // stop processing safely
-            }
-        }
+    	if (oreBlock == null) {
+    	    oreBlock = (Block) Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
+    	    if (oreBlock == null) {
+    	        if (!warnedOnce) {
+    	            System.err.println("[GeoStrataGen] GeoStrata ore block not found, skipping all generation.");
+    	            warnedOnce = true;
+    	        }
+    	        return false;
+    	    }
+    	}
 
         // ---------- PICK A BLOCK FROM THE LIST ----------
         WeightedRandomBlock selected = selectBlock(world, blocks);
