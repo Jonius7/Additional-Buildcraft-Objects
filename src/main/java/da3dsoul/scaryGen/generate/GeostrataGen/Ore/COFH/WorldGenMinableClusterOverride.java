@@ -155,11 +155,22 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
         }
     }
 
-    public static boolean generateBlock(World var0, int var1, int var2, int var3, WeightedRandomBlock[] var4, List<WeightedRandomBlock> var5) {
-        return var4 != null && var4.length != 0?(canGenerateInBlock(var0, var1, var2, var3, var4)?generateBlock(var0, var1, var2, var3, var5):false):generateBlock(var0, var1, var2, var3, var5);
-    }
+    /*public static boolean generateBlock(World var0, int var1, int var2, int var3, WeightedRandomBlock[] var4, List<WeightedRandomBlock> var5) {
+        //return var4 != null && var4.length != 0?(canGenerateInBlock(var0, var1, var2, var3, var4)?generateBlock(var0, var1, var2, var3, var5):false):generateBlock(var0, var1, var2, var3, var5);
+    	return false;
+    }*/
+    public static boolean generateBlock(World world, int x, int y, int z,
+            WeightedRandomBlock[] blocks, 
+            List<WeightedRandomBlock> fallback) {
+    	if (blocks != null && blocks.length > 0) {
+    		return canGenerateInBlock(world, x, y, z, blocks)
+    				&& generateBlock(world, x, y, z, fallback);
+    	} else {
+    		return generateBlock(world, x, y, z, fallback);
+    	}
+    }    
 
-    public static boolean generateBlock(World var0, int var1, int var2, int var3, List<WeightedRandomBlock> var4) {
+    /*public static boolean generateBlock(World var0, int var1, int var2, int var3, List<WeightedRandomBlock> var4) {
         if(oreBlock == null) oreBlock = (Block)Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
         WeightedRandomBlock var5 = selectBlock(var0, var4);
         if(var5 == null) return false;
@@ -173,7 +184,43 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
             ((TileEntityGeoOre) var0.getTileEntity(var1, var2, var3)).initialize(rockType, var5.block, var5.metadata);
         }
         return returnBoolean;
+    }*/
+
+        /* ----- */
+    	
+    public static boolean generateBlock(World world, int x, int y, int z, List<WeightedRandomBlock> blocks) {
+        if (oreBlock == null) {
+            oreBlock = (Block) Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
+            if (oreBlock == null) {
+                System.err.println("[ScaryGen] GeoStrata ore block not found, skipping placement at " + x + "," + y + "," + z);
+                return false; // skip this block
+            }
+        }
+
+        WeightedRandomBlock selected = selectBlock(world, blocks);
+        if (selected == null) return false;
+
+        Block target = world.getBlock(x, y, z);
+        boolean placed = false;
+
+        if (target == Blocks.stone) {
+            placed = world.setBlock(x, y, z, selected.block, selected.metadata, 2);
+        } else {
+            RockTypes rockType = RockTypes.getTypeFromID(target);
+
+            placed = world.setBlock(x, y, z, oreBlock, 0, 2);
+            TileEntityGeoOre tile = (TileEntityGeoOre) world.getTileEntity(x, y, z);
+            if (tile != null) {
+                tile.initialize(rockType, selected.block, selected.metadata);
+            } else {
+                System.err.println("[ScaryGen] Failed to get TileEntityGeoOre at " + x + "," + y + "," + z);
+            }
+        }
+
+        return placed;
     }
+
+
 
     public static WeightedRandomBlock selectBlock(World var0, List<WeightedRandomBlock> var1) {
         int var2 = var1.size();
