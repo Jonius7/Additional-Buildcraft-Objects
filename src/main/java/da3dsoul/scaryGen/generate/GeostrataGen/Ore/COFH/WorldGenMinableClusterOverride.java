@@ -15,8 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class WorldGenMinableClusterOverride extends WorldGenerator {
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+public class WorldGenMinableClusterOverride extends WorldGenerator {
+    private static final Logger LOGGER = LogManager.getLogger("ScaryGen");
+    
     private static Block oreBlock = null;
 
     private static boolean logged = false;
@@ -36,7 +40,7 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
         var1.add(new WeightedRandomBlock(new ItemStack(var0, 1, 0)));
         return var1;
     }
-
+    
     public WorldGenMinableClusterOverride(ItemStack var1, int var2) {
         this(new WeightedRandomBlock(var1), var2);
     }
@@ -155,10 +159,6 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
         }
     }
 
-    /*public static boolean generateBlock(World var0, int var1, int var2, int var3, WeightedRandomBlock[] var4, List<WeightedRandomBlock> var5) {
-        //return var4 != null && var4.length != 0?(canGenerateInBlock(var0, var1, var2, var3, var4)?generateBlock(var0, var1, var2, var3, var5):false):generateBlock(var0, var1, var2, var3, var5);
-    	return false;
-    }*/
     public static boolean generateBlock(World world, int x, int y, int z,
             WeightedRandomBlock[] blocks, 
             List<WeightedRandomBlock> fallback) {
@@ -168,58 +168,38 @@ public class WorldGenMinableClusterOverride extends WorldGenerator {
     	} else {
     		return generateBlock(world, x, y, z, fallback);
     	}
-    }    
-
-    /*public static boolean generateBlock(World var0, int var1, int var2, int var3, List<WeightedRandomBlock> var4) {
-        if(oreBlock == null) oreBlock = (Block)Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
-        WeightedRandomBlock var5 = selectBlock(var0, var4);
-        if(var5 == null) return false;
-        Block target = var0.getBlock(var1,var2,var3);
-        boolean returnBoolean = false;
-        if(target == Blocks.stone) {
-            returnBoolean = var0.setBlock(var1, var2, var3, var5.block, var5.metadata, 2);
-        } else {
-            RockTypes rockType = RockTypes.getTypeFromID(target);
-            returnBoolean = var0.setBlock(var1, var2, var3, oreBlock, 0, 2);
-            ((TileEntityGeoOre) var0.getTileEntity(var1, var2, var3)).initialize(rockType, var5.block, var5.metadata);
-        }
-        return returnBoolean;
-    }*/
-
-        /* ----- */
+    }
     	
     public static boolean generateBlock(World world, int x, int y, int z, List<WeightedRandomBlock> blocks) {
+        // ---------- CHECK IF GEO BLOCK EXISTS ----------
         if (oreBlock == null) {
             oreBlock = (Block) Block.blockRegistry.getObject("GeoStrata:geostrata_block_oretile");
             if (oreBlock == null) {
-                System.err.println("[ScaryGen] GeoStrata ore block not found, skipping placement at " + x + "," + y + "," + z);
-                return false; // skip this block
+                LOGGER.warn("GeoStrata ore block not found, skipping generation.");
+                return false; // stop processing safely
             }
         }
 
+        // ---------- PICK A BLOCK FROM THE LIST ----------
         WeightedRandomBlock selected = selectBlock(world, blocks);
         if (selected == null) return false;
 
         Block target = world.getBlock(x, y, z);
         boolean placed = false;
 
+        // ---------- PLACE BLOCK ----------
         if (target == Blocks.stone) {
             placed = world.setBlock(x, y, z, selected.block, selected.metadata, 2);
         } else {
             RockTypes rockType = RockTypes.getTypeFromID(target);
-
             placed = world.setBlock(x, y, z, oreBlock, 0, 2);
+
             TileEntityGeoOre tile = (TileEntityGeoOre) world.getTileEntity(x, y, z);
-            if (tile != null) {
-                tile.initialize(rockType, selected.block, selected.metadata);
-            } else {
-                System.err.println("[ScaryGen] Failed to get TileEntityGeoOre at " + x + "," + y + "," + z);
-            }
+            if (tile != null) tile.initialize(rockType, selected.block, selected.metadata);
         }
 
         return placed;
     }
-
 
 
     public static WeightedRandomBlock selectBlock(World var0, List<WeightedRandomBlock> var1) {
