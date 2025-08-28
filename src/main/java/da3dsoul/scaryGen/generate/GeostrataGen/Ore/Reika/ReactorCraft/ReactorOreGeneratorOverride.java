@@ -74,4 +74,9 @@ public class ReactorOreGeneratorOverride implements RetroactiveGenerator {
     public boolean canGenerateAt(Random rand, World world, int chunkX, int chunkZ) {
         return true;
     }
+
+	@Override
+	public boolean canGenerateAt(World arg0, int arg1, int arg2) {
+		return true;
+	}
 }

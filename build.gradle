@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
         maven {
             name = "forge"
-            url = "http://files.minecraftforge.net/maven"
+            url = "https://maven.minecraftforge.net/"
         }
         maven {
             name = "sonatype"
@@ -14,13 +14,18 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath ('com.anatawa12.forge:ForgeGradle:1.2-1.1.+') {
+            changing = true
+        }
     }
 }
 
 apply plugin: 'forge'
 
-version = "MC1.7.10-BC7.1release" + "4.0.13"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = "MC1.7.10-BC7.1release" + "4.0.14"
 group= "abo" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ABO"
 
@@ -44,6 +49,10 @@ repositories {
         name "BuildCraft"
         artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision]-[classifier].[ext]"
     }
+    maven {
+        name = "gtnh"
+        url = uri("https://nexus.gtnewhorizons.com/repository/public/")
+    }
 }
 
 dependencies {
@@ -55,6 +64,7 @@ dependencies {
     // real examples
     //if buildcraft maven is not updated again, replace this with buildcraft-version-dev and uncomment it
     //compile name: 'buildcraft-7.1.15-dev'
+    compile "com.github.GTNewHorizons:BuildCraft:7.1.44:dev"
     //if buildcraft maven is not updated, comment out this line
     //compile name: 'buildcraft', version: '7.1.15', classifier: "dev", ext: 'jar'
     //compile "com.mod-buildcraft:buildcraft:7.1.15:dev"
